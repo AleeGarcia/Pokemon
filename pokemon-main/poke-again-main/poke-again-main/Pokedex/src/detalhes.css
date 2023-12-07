@@ -1,0 +1,54 @@
+
+.centralizar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20vh;
+}
+
+
+.detalhes-container {
+    max-width: 800px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 20px;
+    background-color: #c2c2c2;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+    box-shadow: 0 50px 50px rgba(0, 0, 0, 0.1);
+}
+
+
+.pokemon-image {
+    align-items: center;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.pokemons-details p {
+    margin-bottom: 10px;
+}
+
+.bt {
+    margin-top: 20px;
+}
+
+.bt a {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #56e474;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.bt a:hover {
+    background-color: #3aff47;
+    color: #fff;
+    text-decoration: none; 
+}

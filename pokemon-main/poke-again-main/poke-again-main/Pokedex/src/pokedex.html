@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./index.css">
+    <title>Minha Pokédex</title>
+</head>
+
+<body>
+    <header class="principal">
+        <div class="textoPrincipal">
+            <h3> ------------------------- MINHA POKEDEX ------------------------- </h3>
+        </div>
+        <div class="bt">
+            <a href="index.html"><button>Voltar para Lista de Pokémon</button></a>
+        </div>
+    </header>
+
+    <section id="pokedex" class="flex-container"></section>
+
+    <div id="selecao">
+        <h2>Selecione dois Pokémons para Batalhar</h2>
+        <div id="selecaoPokemon" class="flex-container"></div>
+        <button id="btBatalha" onclick="realizarBatalha()">Realizar Batalha</button>
+        <div id="resultadoBatalha"></div>
+    </div>
+
+    <script>
+        const cores = {
+            fire: '#fd7d24',
+            grass: '#9bcc50',
+            electric: '#eed535',
+            water: '#4592c4',
+            ground: '#ab9842',
+            rock: '#a38c21',
+            fairy: '#fdb9e9',
+            poison: '#b97fc9',
+            bug: '#729f3f',
+            dragon: '#53a4cf',
+            psychic: '#f366b9',
+            flying: '#bdb9b8',
+            fighting: '#d56723',
+            normal: '#a4acaf',
+            ghost: '#7b62a3',
+            steel: ''
+        };
+
+        function formatarNome(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function buscarDetalhesPokemon(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .catch(err => console.log("Erro ao buscar detalhes do Pokémon: " + err));
+        }
+
+        function criarCartaPokedex(pokemon, selecionavel = false) {
+            const divPokemon = document.createElement('div');
+            divPokemon.classList.add('borda');
+
+            const nome = formatarNome(pokemon.name);
+            const tipo = pokemon.types[0].type.name;
+            const cor = cores[tipo];
+
+            divPokemon.style.backgroundColor = cor;
+            divPokemon.id = `pokemon${pokemon.id}`;
+            divPokemon.innerHTML = `
+                <div class="pokemons">
+                    <p id="id">#${pokemon.id}</p>
+                    <p id="nome">${nome}</p>
+                    <p id="tipo">${tipo}</p>
+                </div>
+                <img src="${pokemon.sprites.front_default}">
+                <div id="todosBotoes">
+                    ${selecionavel ? `<button id="btSelecionar" onclick="selecionarPokemon(${pokemon.id})">Selecionar</button>` : ''}
+                    <button id="btExcluirJs" onclick="remover(${pokemon.id})">Remover</button>
+                    <button id="btDetalhesJs" onclick="verDetalhes(${pokemon.id})">Detalhes</button>
+                </div>
+            `;
+            return divPokemon;
+        }
+
+        function remover(id) {
+            const div = document.getElementById(`pokemon${id}`);
+            if (div) {
+                div.remove();
+                const storedPokemon = localStorage.getItem('pokedex') || '[]';
+                const pokedex = JSON.parse(storedPokemon);
+                const pokedexAtualizada = pokedex.filter(pokeId => pokeId !== id);
+                localStorage.setItem('pokedex', JSON.stringify(pokedexAtualizada));
+            }
+        }
+
+        function verDetalhes(id) {
+            window.location.href = `detalhes.html?id=${id}`;
+        }
+
+
+        const divPokedex = document.getElementById("pokedex");
+        const divSelecaoPokemon = document.getElementById("selecaoPokemon");
+        const resultadoBatalha = document.getElementById("resultadoBatalha");
+        let pokemonsSelecionados = [];
+
+        function exibirListaPokemons() {
+            const storedPokemon = localStorage.getItem('pokedex') || '[]';
+            const pokedex = JSON.parse(storedPokemon);
+
+            pokedex.forEach(pokeId => {
+                const pokemonDiv = document.getElementById(`pokemon${pokeId}`);
+                if (!pokemonDiv) {
+                    buscarDetalhesPokemon(`https://pokeapi.co/api/v2/pokemon/${pokeId}/`)
+                        .then(poke => {
+                            const carta = criarCartaPokedex(poke, true);
+                            divPokedex.appendChild(carta);
+                        });
+                }
+            });
+        }
+
+        function selecionarPokemon(id) {
+            if (pokemonsSelecionados.length < 2) {
+                const div = document.getElementById(`pokemon${id}`);
+                if (div) {
+                    div.remove();
+                    buscarDetalhesPokemon(`https://pokeapi.co/api/v2/pokemon/${id}/`)
+                        .then(poke => {
+                            const carta = criarCartaPokedex(poke);
+                            divSelecaoPokemon.appendChild(carta);
+                            pokemonsSelecionados.push(poke);
+                            if (pokemonsSelecionados.length === 2) {
+                                document.getElementById('btBatalha').disabled = false;
+                            }
+                        });
+                }
+            }
+        }
+
+
+        function realizarBatalha() {
+            if (pokemonsSelecionados.length === 2) {
+                const statsPokemon1 = calcularStatsTotais(pokemonsSelecionados[0]);
+                const statsPokemon2 = calcularStatsTotais(pokemonsSelecionados[1]);
+
+                const resultado = statsPokemon1 > statsPokemon2 ? `${pokemonsSelecionados[0].name} vence!` : `${pokemonsSelecionados[1].name} vence!`;
+
+                resultadoBatalha.innerText = resultado;
+
+                pokemonsSelecionados = [];
+                divSelecaoPokemon.innerHTML = '';
+                document.getElementById('btBatalha').disabled = true;
+            }
+        }
+
+        function calcularStatsTotais(pokemon) {
+            const stats = pokemon.stats.reduce((total, stat) => total + stat.base_stat, 0);
+            return stats;
+        }
+
+       
+        exibirListaPokemons();
+    </script>
+</body>
+
+</html>
